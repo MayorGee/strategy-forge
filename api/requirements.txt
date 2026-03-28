@@ -1,0 +1,4 @@
+# FastAPI: web framework (routes, request validation, OpenAPI docs).
+fastapi>=0.115.0,<1.0.0
+# ASGI server: runs the app (similar in role to "node server.js" for Node).
+uvicorn[standard]>=0.32.0,<1.0.0

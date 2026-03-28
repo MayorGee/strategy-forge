@@ -41,7 +41,7 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
                         id="settings-api-base"
                         type="url"
                         className={styles.input}
-                        placeholder="https://api.example.com"
+                        placeholder="http://127.0.0.1:8888"
                         value={apiBase}
                         onChange={(e) => setApiBase(e.target.value)}
                         autoComplete="off"
