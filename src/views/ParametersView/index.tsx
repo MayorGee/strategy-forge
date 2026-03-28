@@ -1,16 +1,37 @@
-import { useState } from 'react';
+import { type ChangeEvent } from 'react';
 import { PageShell } from '../../components/PageShell';
+import { useBacktest } from '../../context/BacktestContext';
+import type { PortfolioSettings } from '../../context/backtestReducer';
 import styles from './parameters-view.module.scss';
 
+function patchPortfolioField<K extends keyof PortfolioSettings>(
+    key: K,
+    raw: string,
+): Partial<PortfolioSettings> | null {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return null;
+    if (key === 'initialCapital' && n < 0) return { initialCapital: 0 };
+    if (key === 'feeRoundTripPct' && n < 0) return { feeRoundTripPct: 0 };
+    if (key === 'slippageBps' && n < 0) return { slippageBps: 0 };
+    return { [key]: n } as Partial<PortfolioSettings>;
+}
+
 export function ParametersView() {
-    const [capital, setCapital] = useState('10000');
-    const [feePct, setFeePct] = useState('0.1');
-    const [slippageBps, setSlippageBps] = useState('2');
+    const {
+        state: { portfolio },
+        setPortfolio,
+    } = useBacktest();
+
+    const onNumber =
+        (key: keyof PortfolioSettings) => (e: ChangeEvent<HTMLInputElement>) => {
+            const patch = patchPortfolioField(key, e.target.value);
+            if (patch) setPortfolio(patch);
+        };
 
     return (
         <PageShell
             title="Parameters"
-            subtitle="Global backtest assumptions: capital at risk, costs, and friction. Values are UI-only until the FastAPI engine reads them."
+            subtitle="Global backtest assumptions: capital, costs, and friction. These values stay in app state, show on the Dashboard run banner, and will map directly to the FastAPI payload."
         >
             <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
                 <div className={styles.panel}>
@@ -22,10 +43,12 @@ export function ParametersView() {
                             </label>
                             <input
                                 id="param-capital"
-                                type="text"
+                                type="number"
+                                min={0}
+                                step={100}
                                 className={styles.input}
-                                value={capital}
-                                onChange={(e) => setCapital(e.target.value)}
+                                value={portfolio.initialCapital}
+                                onChange={onNumber('initialCapital')}
                                 autoComplete="off"
                             />
                         </div>
@@ -35,10 +58,12 @@ export function ParametersView() {
                             </label>
                             <input
                                 id="param-fee"
-                                type="text"
+                                type="number"
+                                min={0}
+                                step={0.01}
                                 className={styles.input}
-                                value={feePct}
-                                onChange={(e) => setFeePct(e.target.value)}
+                                value={portfolio.feeRoundTripPct}
+                                onChange={onNumber('feeRoundTripPct')}
                                 autoComplete="off"
                             />
                         </div>
@@ -48,10 +73,12 @@ export function ParametersView() {
                             </label>
                             <input
                                 id="param-slip"
-                                type="text"
+                                type="number"
+                                min={0}
+                                step={0.5}
                                 className={styles.input}
-                                value={slippageBps}
-                                onChange={(e) => setSlippageBps(e.target.value)}
+                                value={portfolio.slippageBps}
+                                onChange={onNumber('slippageBps')}
                                 autoComplete="off"
                             />
                         </div>

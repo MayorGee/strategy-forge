@@ -19,7 +19,12 @@ export function ToolSheetView({ title, subtitle, bullets, ctaLabel }: ToolSheetV
                         </li>
                     ))}
                 </ul>
-                <button type="button" className={styles.cta} disabled>
+                <button
+                    type="button"
+                    className={styles.cta}
+                    disabled
+                    title="Enabled once the FastAPI service is connected."
+                >
                     {ctaLabel}
                 </button>
             </div>

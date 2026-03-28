@@ -1,28 +1,25 @@
 import { useEffect, useId, useState } from 'react';
 import { Calendar, ChevronDown, Upload } from 'lucide-react';
 import { useBacktest } from '../../context/BacktestContext';
-import type { StreamPreviewRow } from '../../types/backtest';
 import { EXCHANGE_OPTIONS, INTERVAL_OPTIONS } from '../../data/marketOptions';
 import { parseCsvPreview } from '../../utils/parseCsvPreview';
 import styles from './data-input.module.scss';
 
 export type DataInputTab = 'asset-selection' | 'csv-upload';
 
-interface DataInputProps {
-    onCsvParsed?: (rows: StreamPreviewRow[]) => void;
-    onCsvClear?: () => void;
-}
-
-export function DataInput({ onCsvParsed, onCsvClear }: DataInputProps) {
-    const { setDataset } = useBacktest();
+export function DataInput() {
+    const { setDataset, setCsvPreview, state } = useBacktest();
     const fileInputId = useId();
-    const [activeTab, setActiveTab] = useState<DataInputTab>('asset-selection');
-    const [symbol, setSymbol] = useState('BTC/USDT');
-    const [startDate, setStartDate] = useState('01/01/2023');
-    const [endDate, setEndDate] = useState('12/31/2023');
-    const [interval, setInterval] = useState('1h');
-    const [exchange, setExchange] = useState('Binance');
-    const [csvFileName, setCsvFileName] = useState<string | null>(null);
+    const ds0 = state.dataset;
+    const [activeTab, setActiveTab] = useState<DataInputTab>(() =>
+        ds0.dataSource === 'csv' ? 'csv-upload' : 'asset-selection',
+    );
+    const [symbol, setSymbol] = useState(() => ds0.symbol);
+    const [startDate, setStartDate] = useState(() => ds0.startDate);
+    const [endDate, setEndDate] = useState(() => ds0.endDate);
+    const [interval, setInterval] = useState(() => ds0.interval);
+    const [exchange, setExchange] = useState(() => ds0.exchange);
+    const [csvFileName, setCsvFileName] = useState<string | null>(() => ds0.csvFileLabel);
     const [csvError, setCsvError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -41,7 +38,6 @@ export function DataInput({ onCsvParsed, onCsvClear }: DataInputProps) {
 
     const selectTab = (tab: DataInputTab) => {
         if (tab === 'asset-selection' && activeTab !== 'asset-selection') {
-            onCsvClear?.();
             setCsvFileName(null);
             setCsvError(null);
             setDataset({ dataSource: 'exchange', csvFileLabel: null });
@@ -55,7 +51,7 @@ export function DataInput({ onCsvParsed, onCsvClear }: DataInputProps) {
     const handleCsvFile = (file: File | null) => {
         setCsvError(null);
         if (!file) return;
-        onCsvClear?.();
+        setCsvPreview(null);
         setCsvFileName(file.name);
         setDataset({ dataSource: 'csv', csvFileLabel: file.name });
         const reader = new FileReader();
@@ -66,7 +62,7 @@ export function DataInput({ onCsvParsed, onCsvClear }: DataInputProps) {
                 setCsvError(error);
                 return;
             }
-            onCsvParsed?.(rows);
+            setCsvPreview(rows);
         };
         reader.onerror = () => setCsvError('Could not read file.');
         reader.readAsText(file);

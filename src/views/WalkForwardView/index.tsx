@@ -58,7 +58,12 @@ export function WalkForwardView() {
                     />
                     Anchor first train window to dataset start
                 </label>
-                <button type="button" className={styles.runBtn} disabled>
+                <button
+                    type="button"
+                    className={styles.runBtn}
+                    disabled
+                    title="Enabled once the FastAPI service is connected."
+                >
                     Run walk-forward (requires API)
                 </button>
                 <p className={styles.note}>

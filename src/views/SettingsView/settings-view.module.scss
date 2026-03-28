@@ -46,6 +46,53 @@
     color: $color-text-muted;
 }
 
+.shortcuts {
+    margin-top: $spacing-6;
+    padding-top: $spacing-6;
+    border-top: 1px solid $color-row-divider;
+}
+
+.shortcutsTitle {
+    margin: 0 0 $spacing-2;
+    font-size: $text-xs;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $color-text-muted;
+}
+
+.shortcutsBody {
+    margin: 0 0 $spacing-3;
+    font-size: $text-xs;
+    line-height: 1.5;
+    color: $color-text-secondary;
+}
+
+.linkAction {
+    padding: $spacing-2 $spacing-4;
+    border-radius: $radius-sm;
+    border: 1px solid $color-border-strong;
+    background: rgba(255, 255, 255, 0.03);
+    font-family: inherit;
+    font-size: $text-sm;
+    font-weight: $font-weight-medium;
+    color: $color-accent;
+    cursor: pointer;
+    transition:
+        background $transition-base $transition-timing,
+        border-color $transition-base $transition-timing;
+
+    &:hover {
+        background: rgba(124, 158, 255, 0.08);
+        border-color: rgba($color-accent, 0.35);
+    }
+
+    &:focus-visible {
+        outline: 2px solid $color-accent;
+        outline-offset: 2px;
+    }
+}
+
 .note {
     margin: $spacing-6 0 0;
     font-size: $text-xs;

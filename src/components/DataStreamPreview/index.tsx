@@ -1,3 +1,4 @@
+import { useBacktest } from '../../context/BacktestContext';
 import type { StreamPreviewRow } from '../../types/backtest';
 import styles from './data-stream-preview.module.scss';
 
@@ -46,14 +47,12 @@ const MAX_PREVIEW_ROWS = 12;
 
 export type DataStreamSource = 'demo' | 'csv';
 
-interface DataStreamPreviewProps {
-    /** When `null`, built-in demo rows are shown (asset mode). */
-    rows: StreamPreviewRow[] | null;
-    source: DataStreamSource;
-}
-
-export function DataStreamPreview({ rows, source }: DataStreamPreviewProps) {
-    const displayRows = rows === null ? DEMO_ROWS : rows;
+export function DataStreamPreview() {
+    const { state } = useBacktest();
+    const { dataset, csvPreviewRows } = state;
+    const isCsv = dataset.dataSource === 'csv';
+    const source: DataStreamSource = isCsv ? 'csv' : 'demo';
+    const displayRows: StreamPreviewRow[] = isCsv ? (csvPreviewRows ?? []) : DEMO_ROWS;
     const visible = displayRows.slice(0, MAX_PREVIEW_ROWS);
 
     const badge =
@@ -69,11 +68,15 @@ export function DataStreamPreview({ rows, source }: DataStreamPreviewProps) {
         <div className={styles.panel}>
             <div className={styles.header}>
                 <h3 className={styles.title}>Data Stream Preview</h3>
-                {visible.length > 0 ? badge : null}
+                {visible.length > 0 || source === 'csv' ? badge : null}
             </div>
 
             {visible.length === 0 ? (
-                <p className={styles.empty}>No rows to preview.</p>
+                <p className={styles.empty}>
+                    {source === 'csv'
+                        ? 'No rows yet — choose a valid OHLCV CSV in the data panel.'
+                        : 'No rows to preview.'}
+                </p>
             ) : (
                 <div className={styles.tableWrap}>
                     <table className={styles.table}>
@@ -94,7 +97,9 @@ export function DataStreamPreview({ rows, source }: DataStreamPreviewProps) {
                                     <td className={styles.td}>{row.open}</td>
                                     <td className={styles.td}>{row.high}</td>
                                     <td className={styles.td}>{row.low}</td>
-                                    <td className={closeCellClass(row.open, row.close)}>{row.close}</td>
+                                    <td className={`${styles.td} ${closeCellClass(row.open, row.close)}`}>
+                                        {row.close}
+                                    </td>
                                     <td className={styles.td}>{row.volume}</td>
                                 </tr>
                             ))}

@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import { PageShell } from '../../components/PageShell';
+import type { AppView } from '../../types/navigation';
 import styles from './settings-view.module.scss';
 
 const STORAGE_KEY = 'strategy-forge-api-base';
 
-export function SettingsView() {
+interface SettingsViewProps {
+    onNavigate?: (view: AppView) => void;
+}
+
+export function SettingsView({ onNavigate }: SettingsViewProps) {
     const [apiBase, setApiBase] = useState('');
 
     useEffect(() => {
@@ -46,6 +51,24 @@ export function SettingsView() {
                         mode.
                     </p>
                 </div>
+
+                {onNavigate ? (
+                    <div className={styles.shortcuts}>
+                        <h2 className={styles.shortcutsTitle}>Shortcuts</h2>
+                        <p className={styles.shortcutsBody}>
+                            On small screens the bottom bar does not include every route. Jump to portfolio assumptions
+                            (capital, fees, slippage) from here if you do not use the desktop sidebar.
+                        </p>
+                        <button
+                            type="button"
+                            className={styles.linkAction}
+                            onClick={() => onNavigate('parameters')}
+                        >
+                            Open Parameters
+                        </button>
+                    </div>
+                ) : null}
+
                 <p className={styles.note}>Theme: dark (default). Light mode can land after core workflows stabilize.</p>
             </div>
         </PageShell>

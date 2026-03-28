@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { BacktestProvider } from './context/BacktestContext';
 import { DataInput } from './components/DataInput';
-import { DataStreamPreview, type DataStreamSource } from './components/DataStreamPreview';
+import { DataStreamPreview } from './components/DataStreamPreview';
 import { EquityCurveCard } from './components/EquityCurveCard';
 import { ForgeModePlaceholder } from './components/ForgeModePlaceholder';
 import { MobileBottomNav, type MobileNavId } from './components/MobileBottomNav';
@@ -14,7 +14,6 @@ import { StrategyLogic } from './components/StrategyLogic';
 import { StrategyRunButton } from './components/StrategyRunButton';
 import { TopBar, type ForgeMainTab } from './components/TopBar';
 import type { AppView } from './types/navigation';
-import type { StreamPreviewRow } from './types/backtest';
 import { appViewToMobileNavId, mobileNavIdToAppView } from './utils/mobileNavMap';
 import { DocumentationView } from './views/DocumentationView';
 import { HistoryView } from './views/HistoryView';
@@ -25,28 +24,17 @@ import { ToolSheetView } from './views/ToolSheetView';
 import { WalkForwardView } from './views/WalkForwardView';
 
 function AppLayout() {
-    const [streamRows, setStreamRows] = useState<StreamPreviewRow[] | null>(null);
     const [mainTab, setMainTab] = useState<ForgeMainTab>('backtest');
     const [view, setView] = useState<AppView>('dashboard');
 
-    const handleCsvParsed = useCallback((rows: StreamPreviewRow[]) => {
-        setStreamRows(rows);
-    }, []);
-
-    const handleCsvClear = useCallback(() => {
-        setStreamRows(null);
-    }, []);
-
-    const handleTopTab = useCallback((tab: ForgeMainTab) => {
+    const handleTopTab = (tab: ForgeMainTab) => {
         setMainTab(tab);
         setView('dashboard');
-    }, []);
+    };
 
-    const handleMobileNav = useCallback((id: MobileNavId) => {
+    const handleMobileNav = (id: MobileNavId) => {
         setView(mobileNavIdToAppView(id));
-    }, []);
-
-    const streamSource: DataStreamSource = streamRows === null ? 'demo' : 'csv';
+    };
 
     const dashboardBody =
         mainTab === 'backtest' ? (
@@ -54,8 +42,8 @@ function AppLayout() {
                 <RunContextBanner />
                 <div className="app__section">
                     <div className="app__workspace">
-                        <DataInput onCsvParsed={handleCsvParsed} onCsvClear={handleCsvClear} />
-                        <DataStreamPreview rows={streamRows} source={streamSource} />
+                        <DataInput />
+                        <DataStreamPreview />
                     </div>
                     <div className="app__strategyStrip">
                         <div className="app__strategyBar">
@@ -117,7 +105,7 @@ function AppLayout() {
                     />
                 );
             case 'settings':
-                return <SettingsView />;
+                return <SettingsView onNavigate={setView} />;
             case 'documentation':
                 return <DocumentationView />;
             default:
@@ -125,8 +113,10 @@ function AppLayout() {
         }
     })();
 
+    const shell = view === 'dashboard' ? 'forge' : 'page';
+
     return (
-        <div className="app">
+        <div className="app" data-shell={shell}>
             <div className="app__glow app__glow--top" aria-hidden />
             <div className="app__glow app__glow--bottom" aria-hidden />
             <Sidebar activeView={view} onNavigate={setView} />

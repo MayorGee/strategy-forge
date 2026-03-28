@@ -4,6 +4,7 @@ import type {
     EquityChartPoint,
     ExecutionLogRow,
     StrategyId,
+    StreamPreviewRow,
 } from '../types/backtest';
 
 export interface BacktestParams {
@@ -14,10 +15,21 @@ export interface BacktestParams {
     rsiOversold: number;
 }
 
+/** Global assumptions (Parameters page + future API payload). */
+export interface PortfolioSettings {
+    initialCapital: number;
+    /** Round-trip fee as a percent, e.g. 0.1 => 0.1%. */
+    feeRoundTripPct: number;
+    slippageBps: number;
+}
+
 export interface BacktestState {
     strategyId: StrategyId;
     params: BacktestParams;
+    portfolio: PortfolioSettings;
     dataset: DatasetConfig;
+    /** Parsed CSV preview rows; cleared when switching to exchange bars. */
+    csvPreviewRows: StreamPreviewRow[] | null;
     runStatus: 'idle' | 'running' | 'done';
     /** Populated after a successful run (mock or API). */
     displayMetrics: DisplayMetric[] | null;
@@ -28,7 +40,9 @@ export interface BacktestState {
 export type BacktestAction =
     | { type: 'SET_STRATEGY'; strategyId: StrategyId }
     | { type: 'SET_PARAM'; key: keyof BacktestParams; value: number }
+    | { type: 'SET_PORTFOLIO'; partial: Partial<PortfolioSettings> }
     | { type: 'SET_DATASET'; partial: Partial<DatasetConfig> }
+    | { type: 'SET_CSV_PREVIEW'; rows: StreamPreviewRow[] | null }
     | { type: 'RUN_START' }
     | {
           type: 'RUN_SUCCESS';
@@ -46,6 +60,12 @@ export const defaultBacktestParams: BacktestParams = {
     rsiOversold: 30,
 };
 
+export const defaultPortfolioSettings: PortfolioSettings = {
+    initialCapital: 10_000,
+    feeRoundTripPct: 0.1,
+    slippageBps: 2,
+};
+
 export const initialDataset: DatasetConfig = {
     symbol: 'BTC/USDT',
     startDate: '01/01/2023',
@@ -59,7 +79,9 @@ export const initialDataset: DatasetConfig = {
 export const initialBacktestState: BacktestState = {
     strategyId: 'sma_crossover',
     params: { ...defaultBacktestParams },
+    portfolio: { ...defaultPortfolioSettings },
     dataset: { ...initialDataset },
+    csvPreviewRows: null,
     runStatus: 'idle',
     displayMetrics: null,
     equitySeries: null,
@@ -75,11 +97,22 @@ export function backtestReducer(state: BacktestState, action: BacktestAction): B
                 ...state,
                 params: { ...state.params, [action.key]: action.value },
             };
-        case 'SET_DATASET':
+        case 'SET_PORTFOLIO':
             return {
                 ...state,
-                dataset: { ...state.dataset, ...action.partial },
+                portfolio: { ...state.portfolio, ...action.partial },
             };
+        case 'SET_DATASET': {
+            const nextDataset = { ...state.dataset, ...action.partial };
+            const leaveCsv = action.partial.dataSource !== 'exchange';
+            return {
+                ...state,
+                dataset: nextDataset,
+                csvPreviewRows: leaveCsv ? state.csvPreviewRows : null,
+            };
+        }
+        case 'SET_CSV_PREVIEW':
+            return { ...state, csvPreviewRows: action.rows };
         case 'RUN_START':
             return { ...state, runStatus: 'running' };
         case 'RUN_SUCCESS':
