@@ -6,6 +6,8 @@ import {
     useReducer,
     type ReactNode,
 } from 'react';
+import { readStoredApiBase } from '../api/apiBase';
+import { fetchBacktestFromApi } from '../api/backtestRun';
 import { MOCK_EQUITY_DATA, MOCK_EXECUTION_LOG, MOCK_METRICS } from '../data/dashboardMock';
 import type { DatasetConfig, StrategyId, StreamPreviewRow } from '../types/backtest';
 import {
@@ -55,6 +57,24 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
 
     const runBacktest = useCallback(async () => {
         dispatch({ type: 'RUN_START' });
+        const apiBase = readStoredApiBase();
+        if (apiBase) {
+            try {
+                const fromApi = await fetchBacktestFromApi(apiBase, state);
+                if (fromApi) {
+                    dispatch({
+                        type: 'RUN_SUCCESS',
+                        metrics: fromApi.metrics,
+                        equity: fromApi.equity,
+                        executions: fromApi.executions,
+                    });
+
+                    return;
+                }
+            } catch (e) {
+                console.warn('[Strategy Forge] API backtest failed, using mock', e);
+            }
+        }
         await new Promise((r) => setTimeout(r, 480));
         dispatch({
             type: 'RUN_SUCCESS',
@@ -62,7 +82,7 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
             equity: MOCK_EQUITY_DATA,
             executions: MOCK_EXECUTION_LOG,
         });
-    }, []);
+    }, [state]);
 
     const value = useMemo(
         () => ({
@@ -83,6 +103,7 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
 
 export function useBacktest(): BacktestContextValue {
     const ctx = useContext(BacktestContext);
+    
     if (!ctx) {
         throw new Error('useBacktest must be used within BacktestProvider');
     }

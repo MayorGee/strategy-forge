@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
+import { STRATEGY_FORGE_API_BASE_KEY } from '../../api/apiBase';
 import { PageShell } from '../../components/PageShell';
 import type { AppView } from '../../types/navigation';
 import styles from './settings-view.module.scss';
-
-const STORAGE_KEY = 'strategy-forge-api-base';
 
 interface SettingsViewProps {
     onNavigate?: (view: AppView) => void;
@@ -13,17 +12,18 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
     const [apiBase, setApiBase] = useState('');
 
     useEffect(() => {
-        setApiBase(() => localStorage.getItem(STORAGE_KEY) ?? '');
+        setApiBase(() => localStorage.getItem(STRATEGY_FORGE_API_BASE_KEY) ?? '');
     }, []);
 
     useEffect(() => {
         const t = window.setTimeout(() => {
             if (apiBase === '') {
-                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STRATEGY_FORGE_API_BASE_KEY);
             } else {
-                localStorage.setItem(STORAGE_KEY, apiBase.trim());
+                localStorage.setItem(STRATEGY_FORGE_API_BASE_KEY, apiBase.trim());
             }
         }, 300);
+        
         return () => window.clearTimeout(t);
     }, [apiBase]);
 
