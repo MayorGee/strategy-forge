@@ -1,14 +1,15 @@
 """
-Strategy Forge API — entry point (chunk 1: health + wiring only).
+Strategy Forge API — entry point.
 
-Think of this file like `src/main.tsx` for the backend:
-- We create an "app" object (FastAPI).
-- We register routes (URL → Python function).
-- Uvicorn (later) is the dev server that listens on a port, like Vite for the UI.
+Chunk 1: health + CORS.
+Chunk 2: POST /backtest — Pydantic-validated body, stub response (dashboardMock parity).
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from mock_results import MOCK_EQUITY, MOCK_EXECUTIONS, MOCK_METRICS
+from schemas import BacktestRequest, BacktestResponse
 
 # --- The app instance ---------------------------------------------------------
 app = FastAPI(
@@ -39,6 +40,24 @@ def health() -> dict[str, str]:
     Frontend can later: fetch(`${apiBase}/health`) before enabling "real" runs.
     """
     return {"status": "ok"}
+
+
+@app.post(
+    "/backtest",
+    response_model=BacktestResponse,
+    response_model_by_alias=True,
+    tags=["backtest"],
+)
+def run_backtest(body: BacktestRequest) -> BacktestResponse:
+    """
+    Run a backtest (stub).
+
+    Body matches what the UI already holds: strategy, params, portfolio, dataset.
+    Values are accepted and validated but not used yet; response matches
+    src/data/dashboardMock.ts so the React app can wire fetch() without type changes.
+    """
+    _ = body  # noqa: F841 — engine will use this in a later chunk
+    return BacktestResponse(metrics=MOCK_METRICS, equity=MOCK_EQUITY, executions=MOCK_EXECUTIONS)
 
 
 # --- Running locally ----------------------------------------------------------
