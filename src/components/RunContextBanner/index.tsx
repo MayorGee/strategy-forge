@@ -18,7 +18,7 @@ function formatRunWhen(status: BacktestState['runStatus'], source: BacktestState
 
 export function RunContextBanner() {
     const { state } = useBacktest();
-    const { strategyId, dataset, portfolio, runStatus, runSource, runNotice } = state;
+    const { strategyId, dataset, portfolio, runStatus, runSource, runNotice, restoredFromHistory } = state;
     const strat = strategyLabel(strategyId);
 
     const primary =
@@ -59,6 +59,9 @@ export function RunContextBanner() {
                 {usd0.format(portfolio.initialCapital)} initial · {portfolio.feeRoundTripPct}% RT fee ·{' '}
                 {portfolio.slippageBps} bps slip.
             </span>
+            {restoredFromHistory ? (
+                <span className={styles.historyLabel}>Restored from history</span>
+            ) : null}
             {runLine ? <span className={styles.runSource}>{runLine}</span> : null}
             {runNotice ? (
                 <p className={styles.notice} role="note">

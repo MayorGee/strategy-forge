@@ -1,6 +1,5 @@
-import type { StrategyId } from '../types/backtest';
+import type { DatasetConfig, ForgeRunArtifacts, StrategyId } from '../types/backtest';
 import type { BacktestParams, PortfolioSettings } from '../context/backtestReducer';
-import type { DatasetConfig } from '../types/backtest';
 
 const STORAGE_KEY = 'strategy-forge-run-history';
 const MAX_RUNS = 25;
@@ -10,6 +9,8 @@ export interface ForgeSnapshot {
     params: BacktestParams;
     portfolio: PortfolioSettings;
     dataset: DatasetConfig;
+    /** Omitted on rows saved before this existed; hydrate then restores config only. */
+    runOutput?: ForgeRunArtifacts | null;
 }
 
 export interface SavedRunRow {

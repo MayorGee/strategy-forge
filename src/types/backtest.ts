@@ -107,3 +107,12 @@ export interface ExecutionLogRow {
     pnlUsd: number;
     status: ExecutionOutcome;
 }
+
+/** Stored with a history row so Open in Forge can replay the same dashboard results. */
+export interface ForgeRunArtifacts {
+    runSource: 'api' | 'mock';
+    runNotice: string | null;
+    metrics: DisplayMetric[];
+    equity: EquityChartPoint[];
+    executions: ExecutionLogRow[];
+}

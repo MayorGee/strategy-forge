@@ -10,7 +10,7 @@ import { readStoredApiBase } from '../api/apiBase';
 import { fetchBacktestFromApi } from '../api/backtestRun';
 import { MOCK_EQUITY_DATA, MOCK_EXECUTION_LOG, MOCK_METRICS } from '../data/dashboardMock';
 import { strategyLabel } from '../data/strategies';
-import type { DatasetConfig, StrategyId, StreamPreviewRow } from '../types/backtest';
+import type { DatasetConfig, ForgeRunArtifacts, StrategyId, StreamPreviewRow } from '../types/backtest';
 import { appendSavedRun, type ForgeSnapshot } from '../utils/savedRuns';
 import {
     backtestReducer,
@@ -35,21 +35,24 @@ interface BacktestContextValue {
 
 const BacktestContext = createContext<BacktestContextValue | null>(null);
 
-function buildSnapshot(state: BacktestState): ForgeSnapshot {
+function buildSnapshot(state: BacktestState, runOutput: ForgeRunArtifacts): ForgeSnapshot {
     return {
         strategyId: state.strategyId,
         params: { ...state.params },
         portfolio: { ...state.portfolio },
         dataset: { ...state.dataset },
+        runOutput: {
+            runSource: runOutput.runSource,
+            runNotice: runOutput.runNotice,
+            metrics: runOutput.metrics.map((m) => ({ ...m })),
+            equity: runOutput.equity.map((p) => ({ ...p })),
+            executions: runOutput.executions.map((e) => ({ ...e })),
+        },
     };
 }
 
-function recordRun(
-    state: BacktestState,
-    runSource: 'api' | 'mock',
-    metrics: typeof MOCK_METRICS,
-) {
-    const returnPct = metrics[0]?.value ?? '—';
+function recordRun(state: BacktestState, runOutput: ForgeRunArtifacts) {
+    const returnPct = runOutput.metrics[0]?.value ?? '—';
     appendSavedRun({
         savedAt: new Date().toISOString(),
         strategyId: state.strategyId,
@@ -58,8 +61,8 @@ function recordRun(
         interval: state.dataset.dataSource === 'exchange' ? state.dataset.interval : '—',
         dataSource: state.dataset.dataSource,
         returnPct,
-        runSource,
-        snapshot: buildSnapshot(state),
+        runSource: runOutput.runSource,
+        snapshot: buildSnapshot(state, runOutput),
     });
 }
 
@@ -97,15 +100,22 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
         if (apiBase) {
             const outcome = await fetchBacktestFromApi(apiBase, state);
             if (outcome.ok) {
-                dispatch({
-                    type: 'RUN_SUCCESS',
+                const runOutput: ForgeRunArtifacts = {
+                    runSource: 'api',
+                    runNotice: null,
                     metrics: outcome.data.metrics,
                     equity: outcome.data.equity,
                     executions: outcome.data.executions,
+                };
+                dispatch({
+                    type: 'RUN_SUCCESS',
+                    metrics: runOutput.metrics,
+                    equity: runOutput.equity,
+                    executions: runOutput.executions,
                     runSource: 'api',
                     runNotice: null,
                 });
-                recordRun(state, 'api', outcome.data.metrics);
+                recordRun(state, runOutput);
                 return;
             }
             const errLine =
@@ -114,29 +124,43 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
                     : `${outcome.status}: ${outcome.message}`;
             console.warn('[Strategy Forge] API backtest failed, using mock', errLine);
             await new Promise((r) => setTimeout(r, 480));
-            dispatch({
-                type: 'RUN_SUCCESS',
+            const mockAfterApiErr: ForgeRunArtifacts = {
+                runSource: 'mock',
+                runNotice: `Could not use API (${errLine}). Showing built-in demo results instead.`,
                 metrics: MOCK_METRICS,
                 equity: MOCK_EQUITY_DATA,
                 executions: MOCK_EXECUTION_LOG,
+            };
+            dispatch({
+                type: 'RUN_SUCCESS',
+                metrics: mockAfterApiErr.metrics,
+                equity: mockAfterApiErr.equity,
+                executions: mockAfterApiErr.executions,
                 runSource: 'mock',
-                runNotice: `Could not use API (${errLine}). Showing built-in demo results instead.`,
+                runNotice: mockAfterApiErr.runNotice,
             });
-            recordRun(state, 'mock', MOCK_METRICS);
+            recordRun(state, mockAfterApiErr);
             return;
         }
 
         await new Promise((r) => setTimeout(r, 480));
-        dispatch({
-            type: 'RUN_SUCCESS',
-            metrics: MOCK_METRICS,
-            equity: MOCK_EQUITY_DATA,
-            executions: MOCK_EXECUTION_LOG,
+        const mockNoBaseUrl: ForgeRunArtifacts = {
             runSource: 'mock',
             runNotice:
                 'No API base URL in Settings — showing built-in demo results. Add your FastAPI URL to run the Python engine.',
+            metrics: MOCK_METRICS,
+            equity: MOCK_EQUITY_DATA,
+            executions: MOCK_EXECUTION_LOG,
+        };
+        dispatch({
+            type: 'RUN_SUCCESS',
+            metrics: mockNoBaseUrl.metrics,
+            equity: mockNoBaseUrl.equity,
+            executions: mockNoBaseUrl.executions,
+            runSource: 'mock',
+            runNotice: mockNoBaseUrl.runNotice,
         });
-        recordRun(state, 'mock', MOCK_METRICS);
+        recordRun(state, mockNoBaseUrl);
     }, [state]);
 
     const value = useMemo(

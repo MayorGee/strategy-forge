@@ -30,7 +30,7 @@ export function HistoryView({ onNavigate }: HistoryViewProps) {
     return (
         <PageShell
             title="History"
-            subtitle="Runs from this browser (local). Open in Forge restores strategy, parameters, portfolio, and dataset—re-upload CSV or re-fetch exchange data if needed, then run again."
+            subtitle="Runs from this browser (local). Open in Forge restores the saved setup and the KPIs, equity curve, and execution log from that run (for runs saved from now on). Older rows only restore setup—re-run to see charts. Re-upload CSV when the source was a file."
         >
             <div className={styles.panel}>
                 {runs.length === 0 ? (

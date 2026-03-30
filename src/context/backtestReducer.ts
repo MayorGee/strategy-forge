@@ -3,6 +3,7 @@ import type {
     DisplayMetric,
     EquityChartPoint,
     ExecutionLogRow,
+    ForgeRunArtifacts,
     StrategyId,
     StreamPreviewRow,
 } from '../types/backtest';
@@ -39,6 +40,8 @@ export interface BacktestState {
     displayMetrics: DisplayMetric[] | null;
     equitySeries: EquityChartPoint[] | null;
     executionLog: ExecutionLogRow[] | null;
+    /** True after Open in Forge from History; cleared when a new run starts or completes. */
+    restoredFromHistory: boolean;
 }
 
 export type BacktestAction =
@@ -63,6 +66,7 @@ export type BacktestAction =
               params: BacktestParams;
               portfolio: PortfolioSettings;
               dataset: DatasetConfig;
+              runOutput?: ForgeRunArtifacts | null;
           };
       }
     | { type: 'RUN_FAIL' };
@@ -103,6 +107,7 @@ export const initialBacktestState: BacktestState = {
     displayMetrics: null,
     equitySeries: null,
     executionLog: null,
+    restoredFromHistory: false,
 };
 
 export function backtestReducer(state: BacktestState, action: BacktestAction): BacktestState {
@@ -131,7 +136,7 @@ export function backtestReducer(state: BacktestState, action: BacktestAction): B
         case 'SET_CSV_PREVIEW':
             return { ...state, csvPreviewRows: action.rows };
         case 'RUN_START':
-            return { ...state, runStatus: 'running', runNotice: null };
+            return { ...state, runStatus: 'running', runNotice: null, restoredFromHistory: false };
         case 'RUN_SUCCESS':
             return {
                 ...state,
@@ -141,24 +146,44 @@ export function backtestReducer(state: BacktestState, action: BacktestAction): B
                 displayMetrics: action.metrics,
                 equitySeries: action.equity,
                 executionLog: action.executions,
+                restoredFromHistory: false,
             };
-        case 'HYDRATE_FORGE':
-            return {
+        case 'HYDRATE_FORGE': {
+            const { snapshot } = action;
+            const out = snapshot.runOutput;
+            const base = {
                 ...state,
-                strategyId: action.snapshot.strategyId,
-                params: { ...action.snapshot.params },
-                portfolio: { ...action.snapshot.portfolio },
-                dataset: { ...action.snapshot.dataset },
+                strategyId: snapshot.strategyId,
+                params: { ...snapshot.params },
+                portfolio: { ...snapshot.portfolio },
+                dataset: { ...snapshot.dataset },
                 csvPreviewRows: null,
-                runStatus: 'idle',
-                runSource: null,
-                runNotice: null,
-                displayMetrics: null,
-                equitySeries: null,
-                executionLog: null,
             };
+            if (!out) {
+                return {
+                    ...base,
+                    runStatus: 'idle',
+                    runSource: null,
+                    runNotice: null,
+                    displayMetrics: null,
+                    equitySeries: null,
+                    executionLog: null,
+                    restoredFromHistory: true,
+                };
+            }
+            return {
+                ...base,
+                runStatus: 'done',
+                runSource: out.runSource,
+                runNotice: out.runNotice,
+                displayMetrics: out.metrics.map((m) => ({ ...m })),
+                equitySeries: out.equity.map((p) => ({ ...p })),
+                executionLog: out.executions.map((e) => ({ ...e })),
+                restoredFromHistory: true,
+            };
+        }
         case 'RUN_FAIL':
-            return { ...state, runStatus: 'idle' };
+            return { ...state, runStatus: 'idle', restoredFromHistory: false };
         default:
             return state;
     }
