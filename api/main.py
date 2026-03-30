@@ -3,11 +3,13 @@ Strategy Forge API — entry point.
 
 Chunk 1: health + CORS.
 Chunk 2: POST /backtest — Pydantic-validated body, stub response (dashboardMock parity).
+Chunk 3: Resolve OHLCV — Binance public klines (exchange) or `bars` from client (CSV); same schema.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from bars_pipeline import resolve_bars
 from mock_results import MOCK_EQUITY, MOCK_EXECUTIONS, MOCK_METRICS
 from schemas import BacktestRequest, BacktestResponse
 
@@ -50,13 +52,12 @@ def health() -> dict[str, str]:
 )
 def run_backtest(body: BacktestRequest) -> BacktestResponse:
     """
-    Run a backtest (stub).
+    Resolve bars (exchange or CSV), then return stub KPIs until the Python engine is connected here.
 
-    Body matches what the UI already holds: strategy, params, portfolio, dataset.
-    Values are accepted and validated but not used yet; response matches
-    src/data/dashboardMock.ts so the React app can wire fetch() without type changes.
+    `resolve_bars` ensures a canonical `OhlcvBar` list is loaded for the next step.
     """
-    _ = body  # noqa: F841 — engine will use this in a later chunk
+    bars = resolve_bars(body)
+    _ = bars  # noqa: F841
     return BacktestResponse(metrics=MOCK_METRICS, equity=MOCK_EQUITY, executions=MOCK_EXECUTIONS)
 
 
@@ -69,3 +70,6 @@ def run_backtest(body: BacktestRequest) -> BacktestResponse:
 #
 # If the port is busy or blocked, pick another (e.g. 8010) and match Settings + CORS if needed.
 # Check a port:  netstat -ano | findstr :8888
+
+
+# .\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8888

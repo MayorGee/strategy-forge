@@ -51,11 +51,29 @@ class DatasetConfig(CamelModel):
     csv_file_label: str | None = None
 
 
+class OhlcvBar(CamelModel):
+    """
+    Canonical bar after normalization — same schema for Binance klines and client CSV.
+
+    - `time`: ISO-8601 UTC (e.g. 2023-01-01T00:00:00Z) for exchange-backed bars;
+      CSV uploads may use the source timestamp string until we normalize in the client.
+    """
+
+    time: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float = 0.0
+
+
 class BacktestRequest(CamelModel):
     strategy_id: Literal["buy_hold", "sma_crossover", "rsi"]
     params: BacktestParams
     portfolio: PortfolioSettings
     dataset: DatasetConfig
+    # Exchange mode: omit (server fetches). CSV mode: required non-empty list from the UI.
+    bars: list[OhlcvBar] | None = None
 
 
 # --- What the API returns (mirrors RUN_SUCCESS payload) ---------------------

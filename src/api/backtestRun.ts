@@ -1,20 +1,30 @@
 import type { BacktestState } from '../context/backtestReducer';
-import type { DisplayMetric, EquityChartPoint, ExecutionLogRow } from '../types/backtest';
+import type { DisplayMetric, EquityChartPoint, ExecutionLogRow, OhlcvBar } from '../types/backtest';
+import { streamPreviewToOhlcvBars } from '../utils/streamPreviewToOhlcvBars';
 
 export interface BacktestApiPayload {
     strategyId: BacktestState['strategyId'];
     params: BacktestState['params'];
     portfolio: BacktestState['portfolio'];
     dataset: BacktestState['dataset'];
+    /** Set when `dataset.dataSource === 'csv'` so the API can run one bar pipeline. */
+    bars?: OhlcvBar[];
 }
 
 export function buildBacktestRequestBody(state: BacktestState): BacktestApiPayload {
-    return {
+    const payload: BacktestApiPayload = {
         strategyId: state.strategyId,
         params: state.params,
         portfolio: state.portfolio,
         dataset: state.dataset,
     };
+    if (state.dataset.dataSource === 'csv' && state.csvPreviewRows?.length) {
+        const bars = streamPreviewToOhlcvBars(state.csvPreviewRows);
+        if (bars.length > 0) {
+            payload.bars = bars;
+        }
+    }
+    return payload;
 }
 
 function isBacktestApiResult(data: unknown): data is {
