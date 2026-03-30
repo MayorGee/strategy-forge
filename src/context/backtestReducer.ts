@@ -31,6 +31,10 @@ export interface BacktestState {
     /** Parsed CSV preview rows; cleared when switching to exchange bars. */
     csvPreviewRows: StreamPreviewRow[] | null;
     runStatus: 'idle' | 'running' | 'done';
+    /** How the last completed run produced results. */
+    runSource: 'api' | 'mock' | null;
+    /** Extra note: mock reason, API error summary, or intentional mock when no base URL. */
+    runNotice: string | null;
     /** Populated after a successful run (mock or API). */
     displayMetrics: DisplayMetric[] | null;
     equitySeries: EquityChartPoint[] | null;
@@ -49,6 +53,17 @@ export type BacktestAction =
           metrics: DisplayMetric[];
           equity: EquityChartPoint[];
           executions: ExecutionLogRow[];
+          runSource: 'api' | 'mock';
+          runNotice: string | null;
+      }
+    | {
+          type: 'HYDRATE_FORGE';
+          snapshot: {
+              strategyId: StrategyId;
+              params: BacktestParams;
+              portfolio: PortfolioSettings;
+              dataset: DatasetConfig;
+          };
       }
     | { type: 'RUN_FAIL' };
 
@@ -83,6 +98,8 @@ export const initialBacktestState: BacktestState = {
     dataset: { ...initialDataset },
     csvPreviewRows: null,
     runStatus: 'idle',
+    runSource: null,
+    runNotice: null,
     displayMetrics: null,
     equitySeries: null,
     executionLog: null,
@@ -114,14 +131,31 @@ export function backtestReducer(state: BacktestState, action: BacktestAction): B
         case 'SET_CSV_PREVIEW':
             return { ...state, csvPreviewRows: action.rows };
         case 'RUN_START':
-            return { ...state, runStatus: 'running' };
+            return { ...state, runStatus: 'running', runNotice: null };
         case 'RUN_SUCCESS':
             return {
                 ...state,
                 runStatus: 'done',
+                runSource: action.runSource,
+                runNotice: action.runNotice,
                 displayMetrics: action.metrics,
                 equitySeries: action.equity,
                 executionLog: action.executions,
+            };
+        case 'HYDRATE_FORGE':
+            return {
+                ...state,
+                strategyId: action.snapshot.strategyId,
+                params: { ...action.snapshot.params },
+                portfolio: { ...action.snapshot.portfolio },
+                dataset: { ...action.snapshot.dataset },
+                csvPreviewRows: null,
+                runStatus: 'idle',
+                runSource: null,
+                runNotice: null,
+                displayMetrics: null,
+                equitySeries: null,
+                executionLog: null,
             };
         case 'RUN_FAIL':
             return { ...state, runStatus: 'idle' };

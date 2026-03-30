@@ -7,13 +7,21 @@
     overflow: hidden;
 }
 
+.empty {
+    margin: 0;
+    padding: $spacing-5 $spacing-4;
+    font-size: $text-sm;
+    color: $color-text-secondary;
+    line-height: 1.5;
+}
+
 .tableWrap {
     overflow-x: auto;
 }
 
 .table {
     width: 100%;
-    min-width: 640px;
+    min-width: 880px;
     border-collapse: collapse;
 }
 
