@@ -4,13 +4,14 @@ Strategy Forge API — entry point.
 Chunk 1: health + CORS.
 Chunk 2: POST /backtest — Pydantic-validated body, stub response (dashboardMock parity).
 Chunk 3: Resolve OHLCV — Binance public klines (exchange) or `bars` from client (CSV); same schema.
+Chunk 4: Engine — long-only backtest (buy & hold, SMA crossover, RSI) on resolved bars.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from bars_pipeline import resolve_bars
-from mock_results import MOCK_EQUITY, MOCK_EXECUTIONS, MOCK_METRICS
+from engine import run_backtest_engine
 from schemas import BacktestRequest, BacktestResponse
 
 # --- The app instance ---------------------------------------------------------
@@ -52,13 +53,15 @@ def health() -> dict[str, str]:
 )
 def run_backtest(body: BacktestRequest) -> BacktestResponse:
     """
-    Resolve bars (exchange or CSV), then return stub KPIs until the Python engine is connected here.
+    Resolve bars, then run the portfolio engine (costs + strategy).
 
-    `resolve_bars` ensures a canonical `OhlcvBar` list is loaded for the next step.
+    Raises 422 if bars cannot be loaded or parameters are invalid for the series length.
     """
-    bars = resolve_bars(body)
-    _ = bars  # noqa: F841
-    return BacktestResponse(metrics=MOCK_METRICS, equity=MOCK_EQUITY, executions=MOCK_EXECUTIONS)
+    try:
+        bars = resolve_bars(body)
+        return run_backtest_engine(body, bars)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 # --- Running locally ----------------------------------------------------------
