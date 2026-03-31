@@ -15,7 +15,7 @@ from schemas import (
 
 
 def _req(
-    strategy_id: Literal["buy_hold", "sma_crossover", "rsi"] = "buy_hold",
+    strategy_id: Literal["buy_hold", "sma_crossover", "ema_crossover", "rsi"] = "buy_hold",
     *,
     fast: int = 5,
     slow: int = 10,
@@ -86,6 +86,30 @@ def test_sma_slow_must_exceed_fast() -> None:
     bars = _flat_bars(20)
     with pytest.raises(ValueError, match="Slow period must be greater"):
         run_backtest_engine(_req("sma_crossover", fast=10, slow=10), bars)
+
+
+def test_ema_slow_must_exceed_fast() -> None:
+    bars = _flat_bars(20)
+    with pytest.raises(ValueError, match="Slow period must be greater"):
+        run_backtest_engine(_req("ema_crossover", fast=10, slow=10), bars)
+
+
+def test_ema_runs_with_enough_bars() -> None:
+    closes = [100.0 + i * 2.0 for i in range(30)]
+    bars = [
+        OhlcvBar(
+            time=f"2024-01-{i + 1:02d}T00:00:00Z",
+            open=c,
+            high=c,
+            low=c,
+            close=c,
+            volume=1.0,
+        )
+        for i, c in enumerate(closes)
+    ]
+    out = run_backtest_engine(_req("ema_crossover", fast=3, slow=5), bars)
+    assert len(out.metrics) >= 1
+    assert len(out.equity) >= 2
 
 
 def test_sma_runs_with_enough_bars() -> None:

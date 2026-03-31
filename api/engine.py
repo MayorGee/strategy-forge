@@ -33,6 +33,20 @@ def _rolling_sma(closes: list[float], w: int) -> list[float]:
     return out
 
 
+def _rolling_ema(closes: list[float], w: int) -> list[float]:
+    """Wilder-style EMA with SMA seed on the first `w` closes (index w - 1)."""
+    n = len(closes)
+    out = [math.nan] * n
+    if w <= 0 or n < w:
+        return out
+    alpha = 2.0 / (w + 1)
+    s = sum(closes[:w])
+    out[w - 1] = s / w
+    for i in range(w, n):
+        out[i] = alpha * closes[i] + (1.0 - alpha) * out[i - 1]
+    return out
+
+
 def _rsi_wilder(closes: list[float], period: int) -> list[float]:
     n = len(closes)
     out = [math.nan] * n
@@ -196,6 +210,19 @@ def _build_want_long_sma(
     ]
 
 
+def _build_want_long_ema(
+    closes: list[float], fast_p: int, slow_p: int
+) -> list[bool]:
+    ema_f = _rolling_ema(closes, fast_p)
+    ema_s = _rolling_ema(closes, slow_p)
+    return [
+        not math.isnan(ema_f[i])
+        and not math.isnan(ema_s[i])
+        and ema_f[i] >= ema_s[i]
+        for i in range(len(closes))
+    ]
+
+
 def _build_want_long_rsi(
     closes: list[float], period: int, ob: int, os: int
 ) -> list[bool]:
@@ -241,6 +268,13 @@ def run_backtest_engine(body: BacktestRequest, bars: list[OhlcvBar]) -> Backtest
         if n < sp + 1:
             raise ValueError("Not enough bars for these SMA periods")
         want = _build_want_long_sma(closes, fp, sp)
+    elif strat == "ema_crossover":
+        fp, sp = body.params.fast_period, body.params.slow_period
+        if sp <= fp:
+            raise ValueError("Slow period must be greater than fast period")
+        if n < sp + 1:
+            raise ValueError("Not enough bars for these EMA periods")
+        want = _build_want_long_ema(closes, fp, sp)
     elif strat == "rsi":
         p, ob, os_ = body.params.rsi_period, body.params.rsi_overbought, body.params.rsi_oversold
         if os_ >= ob:

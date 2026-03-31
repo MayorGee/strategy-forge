@@ -18,7 +18,7 @@ export interface OhlcvBar {
     volume?: number;
 }
 
-export type StrategyId = 'buy_hold' | 'sma_crossover' | 'rsi';
+export type StrategyId = 'buy_hold' | 'sma_crossover' | 'ema_crossover' | 'rsi';
 
 /** Exchange API vs uploaded OHLCV. */
 export type DataSourceMode = 'exchange' | 'csv';

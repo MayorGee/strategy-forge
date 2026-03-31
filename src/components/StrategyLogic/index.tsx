@@ -16,7 +16,7 @@ export function StrategyLogic() {
 
     const meta = STRATEGY_OPTIONS.find((s) => s.id === strategyId);
 
-    if (strategyId === 'sma_crossover') {
+    if (strategyId === 'sma_crossover' || strategyId === 'ema_crossover') {
         return (
             <div className={styles.panel}>
                 <div className={styles.smaGrid}>

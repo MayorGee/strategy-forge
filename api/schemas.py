@@ -72,7 +72,7 @@ class OhlcvBar(CamelModel):
 
 
 class BacktestRequest(CamelModel):
-    strategy_id: Literal["buy_hold", "sma_crossover", "rsi"]
+    strategy_id: Literal["buy_hold", "sma_crossover", "ema_crossover", "rsi"]
     params: BacktestParams
     portfolio: PortfolioSettings
     dataset: DatasetConfig

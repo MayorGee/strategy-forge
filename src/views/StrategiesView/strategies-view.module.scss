@@ -1,6 +1,41 @@
 @use '../../scss/abstracts/variables.scss' as *;
 @use '../../scss/abstracts/mixins.scss' as *;
 
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-8;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-4;
+}
+
+.sectionHeader {
+    margin: 0;
+    padding-bottom: $spacing-4;
+    border-bottom: 1px solid $color-border-subtle;
+}
+
+.sectionTitle {
+    margin: 0 0 $spacing-2;
+    font-size: $text-sm;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $color-text-secondary;
+}
+
+.sectionIntro {
+    margin: 0;
+    max-width: 52rem;
+    font-size: $text-sm;
+    line-height: 1.5;
+    color: $color-text-secondary;
+}
+
 .grid {
     display: grid;
     gap: $spacing-4;
@@ -25,17 +60,16 @@
     min-height: 0;
 }
 
-.cardHeader {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: $spacing-2;
-    margin-bottom: $spacing-3;
+.cardBuiltin {
+    box-shadow: inset 3px 0 0 $color-accent;
+}
+
+.cardTemplate {
+    box-shadow: inset 3px 0 0 $color-violet;
 }
 
 .cardTitle {
-    margin: 0;
+    margin: 0 0 $spacing-3;
     font-size: $text-base;
     font-weight: $font-weight-semibold;
     color: $color-text-primary;
@@ -53,23 +87,6 @@
     font-size: $text-2xs;
     font-family: var(--font-mono, ui-monospace, monospace);
     color: $color-accent;
-}
-
-.badge {
-    flex-shrink: 0;
-    padding: 2px 8px;
-    border-radius: $radius-sm;
-    font-size: $text-2xs;
-    font-weight: $font-weight-semibold;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    background: $color-accent-soft;
-    color: $color-accent;
-}
-
-.badgeTemplate {
-    background: rgba(139, 92, 246, 0.12);
-    color: $color-violet;
 }
 
 .desc {

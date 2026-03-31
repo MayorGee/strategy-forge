@@ -42,7 +42,9 @@ export function RunContextBanner() {
                 <span className={styles.sep}>·</span>
                 <span>{intervalLabel(dataset.interval)}</span>
                 <span className={styles.sep}>·</span>
-                <span>{dataset.exchange}</span>
+                <span>
+                    {dataset.exchange} spot
+                </span>
                 <span className={styles.sep}>·</span>
                 <span>
                     {dataset.startDate} – {dataset.endDate}

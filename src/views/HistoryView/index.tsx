@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
 import { PageShell } from '../../components/PageShell';
 import { useBacktest } from '../../context/BacktestContext';
 import type { AppView } from '../../types/navigation';
+import type { ForgeSnapshot } from '../../utils/savedRuns';
 import { loadSavedRuns } from '../../utils/savedRuns';
 import styles from './history-view.module.scss';
 
@@ -11,12 +11,14 @@ function formatSavedAt(iso: string): string {
     return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function engineLabel(runSource: 'api' | 'mock'): string {
-    return runSource === 'api' ? 'Python engine' : 'Demo mock';
-}
-
-function dataKind(label: string): string {
-    return label === 'csv' ? 'CSV' : 'Exchange';
+/** Venue + mode: matches dashboard context (Binance/Bybit spot or CSV file). */
+function formatDataFeed(snapshot: ForgeSnapshot): string {
+    const d = snapshot.dataset;
+    if (d.dataSource === 'csv') {
+        return d.csvFileLabel ? `CSV · ${d.csvFileLabel}` : 'CSV upload';
+    }
+    const venue = d.exchange?.trim() || 'Exchange';
+    return `${venue} · spot`;
 }
 
 interface HistoryViewProps {
@@ -25,12 +27,12 @@ interface HistoryViewProps {
 
 export function HistoryView({ onNavigate }: HistoryViewProps) {
     const { hydrateForge } = useBacktest();
-    const runs = useMemo(() => loadSavedRuns(), []);
+    const runs = loadSavedRuns();
 
     return (
         <PageShell
             title="History"
-            subtitle="Runs from this browser (local). Open in Forge restores the saved setup and the KPIs, equity curve, and execution log from that run (for runs saved from now on). Older rows only restore setup—re-run to see charts. Re-upload CSV when the source was a file."
+            subtitle="Runs from this browser (local). The data feed column shows where OHLCV came from (exchange spot or CSV). Open in Forge restores that setup and saved results when available; older rows may restore settings only—re-run to refresh charts. Re-upload CSV when the feed was a file."
         >
             <div className={styles.panel}>
                 {runs.length === 0 ? (
@@ -44,10 +46,7 @@ export function HistoryView({ onNavigate }: HistoryViewProps) {
                                         When
                                     </th>
                                     <th className={styles.th} scope="col">
-                                        Source
-                                    </th>
-                                    <th className={styles.th} scope="col">
-                                        Data
+                                        Data feed
                                     </th>
                                     <th className={styles.th} scope="col">
                                         Symbol
@@ -70,8 +69,7 @@ export function HistoryView({ onNavigate }: HistoryViewProps) {
                                 {runs.map((r) => (
                                     <tr key={r.id}>
                                         <td className={`${styles.td} ${styles.mono}`}>{formatSavedAt(r.savedAt)}</td>
-                                        <td className={styles.td}>{engineLabel(r.runSource)}</td>
-                                        <td className={styles.td}>{dataKind(r.dataSource)}</td>
+                                        <td className={styles.td}>{formatDataFeed(r.snapshot)}</td>
                                         <td className={styles.td}>{r.symbol}</td>
                                         <td className={styles.td}>{r.strategyLabel}</td>
                                         <td className={styles.td}>{r.interval}</td>

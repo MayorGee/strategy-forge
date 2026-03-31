@@ -11,11 +11,12 @@ export function DocumentationView() {
                 <section className={styles.block}>
                     <h2 className={styles.blockTitle}>What this app does</h2>
                     <p className={styles.p}>
-                        Strategy Forge is a <strong>backtest shell</strong>: you choose data (Binance spot or CSV),
-                        strategy and parameters, optional out-of-sample split, then <strong>Run backtest</strong>. Results
-                        include KPI tiles, an equity curve, and an execution log. The UI can call your{' '}
-                        <strong>FastAPI</strong> service; if the API is missing or errors, it falls back to demo output
-                        and explains why in the run banner.
+                        Strategy Forge is a <strong>backtest shell</strong>: you choose market data (spot OHLCV from{' '}
+                        <strong>Binance</strong> or <strong>Bybit</strong>, or an uploaded <strong>CSV</strong>), a
+                        strategy and parameters, an optional out-of-sample split, then <strong>Run backtest</strong>.
+                        Results include KPI tiles, an equity curve, and an execution log. The UI calls your{' '}
+                        <strong>FastAPI</strong> service when a base URL is set; if the API is missing or errors, it
+                        falls back to demo output and explains why in the run banner.
                     </p>
                 </section>
 
@@ -23,23 +24,30 @@ export function DocumentationView() {
                     <h2 className={styles.blockTitle}>Backtest flow</h2>
                     <ol className={styles.ol}>
                         <li>
-                            <strong>Settings:</strong> set the API base URL (e.g. <code className={styles.inlineCode}>http://127.0.0.1:8888</code>
+                            <strong>Settings:</strong> set the API base URL (e.g.{' '}
+                            <code className={styles.inlineCode}>http://127.0.0.1:8888</code>
                             ) so runs hit your Python engine.
                         </li>
                         <li>
-                            <strong>Data:</strong> use <strong>Asset selection</strong> for crypto symbols—bars are
-                            fetched on the server from <strong>Binance spot</strong> when you run. For{' '}
-                            <strong>forex and metals</strong> (EURUSD, XAUUSD, …), use <strong>CSV upload</strong> with
-                            broker or platform OHLCV.
+                            <strong>Data:</strong> under <strong>Asset selection</strong>, pick <strong>Binance</strong>{' '}
+                            or <strong>Bybit</strong>, symbol, interval (5m–1d), and date range (
+                            <code className={styles.inlineCode}>MM/DD/YYYY</code>, UTC day bounds). The server downloads{' '}
+                            public <strong>spot</strong> klines—no API keys. For assets not on those venues (forex,
+                            metals, custom series), use <strong>CSV upload</strong> with broker or platform OHLCV.
+                        </li>
+                        <li>
+                            <strong>Same strategy, different venues:</strong> OHLC is exchange-specific. Expect small
+                            differences in metrics between Binance and Bybit for the same symbol and range; large gaps
+                            usually mean a configuration or data-range issue.
                         </li>
                         <li>
                             <strong>OHLCV preview:</strong> CSV mode shows parsed rows from your file. Exchange mode
-                            shows a sample table only; real candles are not streamed in the browser.
+                            shows a sample table only; real candles are fetched at run time on the server.
                         </li>
                         <li>
-                            <strong>Strategies:</strong> three engines—Buy &amp; hold, SMA crossover, RSI. The{' '}
-                            <strong>Strategies</strong> page lists built-ins plus <strong>templates</strong> that apply
-                            preset parameters (same engines, different defaults).
+                            <strong>Strategies:</strong> four engines—Buy &amp; hold, SMA crossover, EMA crossover, RSI. The{' '}
+                            <strong>Strategies</strong> page splits <strong>Core strategies</strong> and{' '}
+                            <strong>Templates</strong> (preset parameter bundles on those engines).
                         </li>
                         <li>
                             <strong>OOS start (optional):</strong> if you set an out-of-sample date (
@@ -48,8 +56,11 @@ export function DocumentationView() {
                             stays full-sample.
                         </li>
                         <li>
-                            <strong>History:</strong> runs are saved in this browser (local storage). Open a row to
-                            restore that configuration and saved results when available.
+                            <strong>History:</strong> completed runs are saved in this browser (local storage). The{' '}
+                            <strong>Data feed</strong> column shows <strong>Binance · spot</strong>,{' '}
+                            <strong>Bybit · spot</strong>, or <strong>CSV ·</strong> filename. Whether the KPIs came from
+                            the API or the demo mock is clear from the run banner after you open a row in Forge. Open a
+                            row to restore that configuration and saved results when available.
                         </li>
                     </ol>
                 </section>
@@ -62,12 +73,16 @@ export function DocumentationView() {
                         </li>
                         <li>
                             <code className={styles.inlineCode}>POST /backtest</code> — body matches the Forge state:
-                            strategy, parameters, portfolio, dataset, optional <code className={styles.inlineCode}>bars</code>{' '}
-                            for CSV mode. Engine is <strong>long-only</strong> (spot-style).
+                            strategy, parameters, portfolio, <code className={styles.inlineCode}>dataset</code>{' '}
+                            (including <code className={styles.inlineCode}>exchange</code> and{' '}
+                            <code className={styles.inlineCode}>dataSource</code>), optional{' '}
+                            <code className={styles.inlineCode}>bars</code> for CSV mode. Exchange mode pulls spot klines
+                            from Binance or Bybit according to <code className={styles.inlineCode}>dataset.exchange</code>
+                            . Engine is <strong>long-only</strong> (spot-style).
                         </li>
                         <li>
-                            CORS in development allows the Vite dev origin; adjust <code className={styles.inlineCode}>main.py</code>{' '}
-                            for production.
+                            CORS in development allows the Vite dev origin; adjust{' '}
+                            <code className={styles.inlineCode}>main.py</code> for production.
                         </li>
                     </ul>
                     <p className={styles.p}>
