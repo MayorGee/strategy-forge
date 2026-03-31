@@ -11,8 +11,9 @@ export function DocumentationView() {
                 <section className={styles.block}>
                     <h2 className={styles.blockTitle}>Backtest flow</h2>
                     <p className={styles.p}>
-                        Choose exchange bars or upload CSV, pick a strategy and parameters, then run. Metrics, equity, and
-                        execution log populate from the mock engine today; swap the client call for FastAPI when ready.
+                        <strong>Asset selection</strong> loads crypto spot candles from Binance when you run the API.{' '}
+                        <strong>Forex and metals</strong> (EURUSD, XAUUSD, etc.) use <strong>CSV upload</strong> with
+                        broker or platform OHLCV. Then pick a strategy and parameters and run.
                     </p>
                 </section>
                 <section className={styles.block}>

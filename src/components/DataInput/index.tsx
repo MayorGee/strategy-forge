@@ -23,6 +23,28 @@ export function DataInput() {
     const [csvError, setCsvError] = useState<string | null>(null);
 
     useEffect(() => {
+        setSymbol(ds0.symbol);
+        setStartDate(ds0.startDate);
+        setEndDate(ds0.endDate);
+        setInterval(ds0.interval);
+        setExchange(ds0.exchange);
+        setActiveTab(ds0.dataSource === 'csv' ? 'csv-upload' : 'asset-selection');
+        if (ds0.dataSource === 'csv' && ds0.csvFileLabel) {
+            setCsvFileName(ds0.csvFileLabel);
+        } else if (ds0.dataSource === 'exchange') {
+            setCsvFileName(null);
+        }
+    }, [
+        ds0.symbol,
+        ds0.startDate,
+        ds0.endDate,
+        ds0.interval,
+        ds0.exchange,
+        ds0.dataSource,
+        ds0.csvFileLabel,
+    ]);
+
+    useEffect(() => {
         if (activeTab === 'asset-selection') {
             setDataset({
                 symbol,
@@ -97,17 +119,15 @@ export function DataInput() {
                         <label className={styles.label} htmlFor="data-symbol">
                             Symbol
                         </label>
-                        <div className={styles.inputWrap}>
-                            <input
-                                id="data-symbol"
-                                type="text"
-                                className={styles.input}
-                                value={symbol}
-                                onChange={(e) => setSymbol(e.target.value)}
-                                autoComplete="off"
-                            />
-                            <ChevronDown className={styles.inputIcon} aria-hidden strokeWidth={2} />
-                        </div>
+                        <input
+                            id="data-symbol"
+                            type="text"
+                            className={styles.input}
+                            value={symbol}
+                            onChange={(e) => setSymbol(e.target.value)}
+                            autoComplete="off"
+                            placeholder="BTC/USDT, ETH/USDT…"
+                        />
                     </div>
 
                     <div className={styles.metaGrid}>
@@ -162,7 +182,7 @@ export function DataInput() {
                                 <input
                                     id="data-start"
                                     type="text"
-                                    className={styles.input}
+                                    className={`${styles.input} ${styles.inputWithEndAdornment}`}
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
                                     autoComplete="off"
@@ -178,7 +198,7 @@ export function DataInput() {
                                 <input
                                     id="data-end"
                                     type="text"
-                                    className={styles.input}
+                                    className={`${styles.input} ${styles.inputWithEndAdornment}`}
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
                                     autoComplete="off"
@@ -187,6 +207,12 @@ export function DataInput() {
                             </div>
                         </div>
                     </div>
+
+                    <p className={styles.forexHint} role="note">
+                        <strong>Forex &amp; metals</strong> (e.g. EURUSD, GBPUSD, XAUUSD): server download is{' '}
+                        <strong>crypto spot only</strong> (Binance). Use <strong>CSV Upload</strong> with OHLCV from
+                        your broker or data export.
+                    </p>
                 </div>
             )}
 
@@ -194,8 +220,8 @@ export function DataInput() {
                 <div className={styles.csvZone}>
                     <Upload className={styles.csvUploadIcon} size={28} strokeWidth={1.5} aria-hidden />
                     <p className={styles.csvHint}>
-                        Upload OHLCV CSV with a header row (e.g. timestamp, open, high, low, close, volume). A
-                        preview of the first rows appears in the stream panel.
+                        Required for forex and metal symbols—upload OHLCV CSV with a header row (e.g. timestamp, open,
+                        high, low, close, volume). A preview of the first rows appears in the stream panel.
                     </p>
                     <label className={styles.fileLabel} htmlFor={fileInputId}>
                         Choose CSV

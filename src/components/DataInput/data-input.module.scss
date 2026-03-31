@@ -12,6 +12,17 @@
     padding: 25px;
 }
 
+.forexHint {
+    margin: 0;
+    padding: $spacing-3;
+    border-radius: $radius-sm;
+    border-left: 3px solid rgba($color-accent, 0.5);
+    background: rgba($color-accent, 0.06);
+    font-size: $text-xs;
+    line-height: 1.45;
+    color: $color-text-secondary;
+}
+
 .tabs {
     display: flex;
     gap: $spacing-4;
@@ -70,11 +81,12 @@
 }
 
 .input {
+    box-sizing: border-box;
     width: 100%;
     background: $color-surface-deep;
     border-radius: $radius-sm;
     border: 1px solid transparent;
-    padding: 12px 40px 12px 12px;
+    padding: 12px;
     font-size: $text-sm;
     color: $color-text-primary;
     outline: none;
@@ -87,6 +99,10 @@
     &::placeholder {
         color: $color-text-muted;
     }
+}
+
+.inputWithEndAdornment {
+    padding-right: 40px;
 }
 
 .inputIcon {

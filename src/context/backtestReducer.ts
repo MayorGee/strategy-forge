@@ -151,12 +151,13 @@ export function backtestReducer(state: BacktestState, action: BacktestAction): B
         case 'HYDRATE_FORGE': {
             const { snapshot } = action;
             const out = snapshot.runOutput;
+            const datasetMerged: DatasetConfig = { ...initialDataset, ...snapshot.dataset };
             const base = {
                 ...state,
                 strategyId: snapshot.strategyId,
                 params: { ...snapshot.params },
                 portfolio: { ...snapshot.portfolio },
-                dataset: { ...snapshot.dataset },
+                dataset: datasetMerged,
                 csvPreviewRows: null,
             };
             if (!out) {

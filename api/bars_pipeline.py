@@ -29,7 +29,7 @@ def resolve_bars(body: BacktestRequest) -> list[OhlcvBar]:
         raise HTTPException(
             status_code=501,
             detail=f"Server-side fetch for '{body.dataset.exchange}' is not implemented yet. "
-            "Choose Binance or use CSV upload.",
+            "Choose Binance (crypto) or use CSV upload.",
         )
     start_ms, end_ms = parse_ui_date_range_ms(body.dataset.start_date, body.dataset.end_date)
     bars = fetch_binance_spot_bars(
