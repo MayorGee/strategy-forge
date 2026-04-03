@@ -21,6 +21,22 @@ export function DocumentationView() {
                 </section>
 
                 <section className={styles.block}>
+                    <h2 className={styles.blockTitle}>Defaults and limits</h2>
+                    <ul className={styles.list}>
+                        <li>
+                            <strong>New session dates:</strong> the Forge defaults to{' '}
+                            <code className={styles.inlineCode}>01/01/2023</code> through{' '}
+                            <code className={styles.inlineCode}>12/31/2025</code> until you change them.
+                        </li>
+                        <li>
+                            <strong>Exchange bar cap:</strong> each server fetch is limited (currently up to{' '}
+                            <strong>20,000</strong> candles). Very long ranges on small intervals may require a shorter
+                            window or a larger bar size.
+                        </li>
+                    </ul>
+                </section>
+
+                <section className={styles.block}>
                     <h2 className={styles.blockTitle}>Backtest flow</h2>
                     <ol className={styles.ol}>
                         <li>
@@ -45,8 +61,8 @@ export function DocumentationView() {
                             shows a sample table only; real candles are fetched at run time on the server.
                         </li>
                         <li>
-                            <strong>Strategies:</strong> four engines—Buy &amp; hold, SMA crossover, EMA crossover, RSI. The{' '}
-                            <strong>Strategies</strong> page splits <strong>Core strategies</strong> and{' '}
+                            <strong>Strategies:</strong> four engines—Buy &amp; hold, SMA crossover, EMA crossover, RSI.
+                            The <strong>Strategies</strong> page splits <strong>Core strategies</strong> and{' '}
                             <strong>Templates</strong> (preset parameter bundles on those engines).
                         </li>
                         <li>
@@ -78,17 +94,37 @@ export function DocumentationView() {
                             <code className={styles.inlineCode}>dataSource</code>), optional{' '}
                             <code className={styles.inlineCode}>bars</code> for CSV mode. Exchange mode pulls spot klines
                             from Binance or Bybit according to <code className={styles.inlineCode}>dataset.exchange</code>
-                            . Engine is <strong>long-only</strong> (spot-style).
+                            . Supported strategy IDs include buy &amp; hold, SMA crossover, EMA crossover, and RSI;
+                            engine is <strong>long-only</strong> (spot-style).
                         </li>
                         <li>
-                            CORS in development allows the Vite dev origin; adjust{' '}
-                            <code className={styles.inlineCode}>main.py</code> for production.
+                            CORS in development allows the Vite dev origin; for production deployment, add your live
+                            front-end origin to <code className={styles.inlineCode}>CORSMiddleware</code> in{' '}
+                            <code className={styles.inlineCode}>api/main.py</code>.
                         </li>
                     </ul>
                     <p className={styles.p}>
-                        See the project <code className={styles.inlineCode}>README.md</code> for install and{' '}
-                        <code className={styles.inlineCode}>uvicorn</code> commands.
+                        See the project <code className={styles.inlineCode}>README.md</code> for install, production
+                        build, <code className={styles.inlineCode}>uvicorn</code>, deployment notes, and tests.
                     </p>
+                </section>
+
+                <section className={styles.block}>
+                    <h2 className={styles.blockTitle}>Deployment (summary)</h2>
+                    <ol className={styles.ol}>
+                        <li>
+                            Build the UI: <code className={styles.inlineCode}>npm run build</code> and host the{' '}
+                            <code className={styles.inlineCode}>dist/</code> output.
+                        </li>
+                        <li>
+                            Run the API on a reachable URL; users enter that URL under <strong>Settings</strong> in the
+                            app (unless you inject it at build time yourself).
+                        </li>
+                        <li>
+                            Update API <strong>CORS</strong> allowlist to include your deployed site origin (not just port{' '}
+                            5173).
+                        </li>
+                    </ol>
                 </section>
 
                 <section className={styles.block}>

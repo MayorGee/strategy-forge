@@ -93,7 +93,7 @@ export const defaultPortfolioSettings: PortfolioSettings = {
 export const initialDataset: DatasetConfig = {
     symbol: 'BTC/USDT',
     startDate: '01/01/2023',
-    endDate: '12/31/2023',
+    endDate: '12/31/2025',
     interval: '1h',
     exchange: 'Binance',
     dataSource: 'exchange',
